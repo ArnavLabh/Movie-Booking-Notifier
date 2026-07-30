@@ -132,11 +132,17 @@ or two. Then run it again unticked to do a real check against your configured wa
 
 ## 6. Let it run
 
-The schedule (`.github/workflows/notify.yml`) is `*/5 * * * *` — roughly every 5
-minutes. GitHub doesn't guarantee sub-5-minute schedules reliably, and runs can be
-delayed under load; that's a platform limit, not a bug here.
+The schedule (`.github/workflows/notify.yml`) is `*/15 * * * *` — roughly every 15
+minutes. GitHub doesn't guarantee exact schedule timing, and runs can be delayed
+under platform load; that's a platform limit, not a bug here.
 
-Two things worth knowing:
+Three things worth knowing:
+- **Keep the repo public.** Private repos only get ~2,000 free Actions minutes/month;
+  a frequent schedule blows through that fast (each run is billed a minimum of 1
+  minute), and once you're over quota GitHub throttles/delays scheduled runs hard —
+  this is what caused the earlier 1-3 hour gaps. Public repos get unlimited free
+  minutes on standard runners. Nothing sensitive lives in the repo itself; your
+  Gmail App Password only ever lives in encrypted repo Secrets.
 - **GitHub disables scheduled workflows after 60 days of no repo activity.** If
   you don't touch the repo for a while, push any small commit (or the state.json
   auto-commits) to keep it alive, or just re-enable it in the Actions tab.
@@ -153,7 +159,7 @@ recreated empty on the next run) and push. It'll be checked again on the next ru
   treated as a failure.
 - **Failure alerts, not silent breakage**: if fetching/parsing fails 3 runs in a
   row for a watch, you get a one-time "Notifier needs attention" email instead of
-  either silent failure or being spammed every 5 minutes. Once it starts working
+  either silent failure or being spammed every 15 minutes. Once it starts working
   again, the failure counter resets automatically.
 - **Bot detection risk**: BookMyShow may at some point start blocking or
   rate-limiting requests from GitHub Actions' shared IP ranges (Akamai/WAF-style

@@ -18,5 +18,24 @@
       "IMAX",
       "IMAX 2D"
     ]
+  },
+  {
+    "id": "spider-man-brand-new-day-ET00502630-pvr-phoenix-market-city-pune-2026-08-10",
+    "label": "Spider Man Brand New Day 4DX @ 10th August",
+    "movie_name": "Spider Man Brand New Day",
+    "movie_slug": "spider-man-brand-new-day",
+    "event_code": "ET00502630",
+    "date": "2026-08-10",
+    "language": "english",
+    "theatre": "PVR: Phoenix Market City, Pune",
+    "theatre_aliases": [
+      "PVR: Phoenix Market City Pune",
+      "Phoenix",
+      "Seasons Mall"
+    ],
+    "formats": [
+      "4DX 3D",
+      "4DX"
+    ]
   }
 ]
