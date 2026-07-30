@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.env
+*.local.json
+debug_dump_*.html

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Booking Notifier - Watch Config Builder</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2f3a;
+    --text: #e8eaed;
+    --muted: #9aa3b2;
+    --accent: #ff5c39;
+    --accent-hover: #ff7657;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px 80px;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.subtitle { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 14px; color: var(--text); }
+  label { display: block; font-size: 12.5px; color: var(--muted); margin: 14px 0 5px; }
+  label.first { margin-top: 0; }
+  input[type=text], input[type=date], textarea {
+    width: 100%;
+    padding: 9px 11px;
+    background: #0d0f14;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus { outline: 1px solid var(--accent); }
+  .row { display: flex; gap: 14px; }
+  .row > div { flex: 1; }
+  .hint { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover { background: var(--accent-hover); }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 500;
+  }
+  button.secondary:hover { border-color: var(--accent); }
+  button.danger { background: transparent; color: #f87171; border: 1px solid #7f1d1d; padding: 5px 10px; font-size: 12px; }
+  .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; }
+  td.muted { color: var(--muted); font-size: 12px; }
+  .empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+  .file-input-wrap { display: inline-block; }
+  input[type=file] { display: none; }
+  .status { font-size: 12.5px; margin-top: 10px; min-height: 18px; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: #f87171; }
+  .tag { display: inline-block; background: #23272f; border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; font-size: 11.5px; margin: 2px 3px 0 0; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Booking Notifier &mdash; Watch Config Builder</h1>
+  <p class="subtitle">
+    Builds <code>watches.json</code> for the notifier. Everything runs locally in this page &mdash;
+    nothing is uploaded anywhere. City is fixed to Pune.
+  </p>
+
+  <div class="card">
+    <h2>1. Paste a BookMyShow buytickets link (optional shortcut)</h2>
+    <label class="first">BookMyShow URL</label>
+    <input type="text" id="bmsUrl" placeholder="https://in.bookmyshow.com/movies/pune/the-odyssey/buytickets/ET00480917/20260803?...">
+    <div class="hint">
+      Open the movie on BookMyShow, pick the date and city (Pune), and copy the URL from your browser's
+      address bar. This auto-fills the movie name, event code, and date below.
+    </div>
+    <div class="actions">
+      <button type="button" class="secondary" onclick="extractFromUrl()">Extract into form</button>
+    </div>
+    <div class="status" id="extractStatus"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Watch details</h2>
+
+    <label class="first">Label (just for your own reference / email subject)</label>
+    <input type="text" id="f_label" placeholder="The Odyssey @ INOX Wakad (3 Aug, IMAX)">
+
+    <div class="row">
+      <div>
+        <label>Movie name</label>
+        <input type="text" id="f_movie_name" placeholder="The Odyssey">
+      </div>
+      <div>
+        <label>Movie slug (from the URL)</label>
+        <input type="text" id="f_movie_slug" placeholder="the-odyssey">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Event code (ET code)</label>
+        <input type="text" id="f_event_code" placeholder="ET00480917">
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="f_date">
+      </div>
+    </div>
+
+    <label>Theatre name (must match how BookMyShow names it &mdash; close matches are OK)</label>
+    <input type="text" id="f_theatre" placeholder="INOX Megaplex Phoenix Mall of the Millennium Wakad">
+
+    <label>Theatre aliases (comma-separated, optional &mdash; helps matching)</label>
+    <input type="text" id="f_theatre_aliases" placeholder="INOX Megaplex, Phoenix Mall of the Millennium, Wakad">
+
+    <div class="row">
+      <div>
+        <label>Formats to notify on (comma-separated; leave blank for any format)</label>
+        <input type="text" id="f_formats" placeholder="IMAX, IMAX 2D">
+      </div>
+      <div>
+        <label>Language</label>
+        <input type="text" id="f_language" placeholder="english" value="english">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" onclick="addOrUpdateWatch()" id="addBtn">Add watch</button>
+      <button type="button" class="secondary" onclick="resetForm()">Clear form</button>
+    </div>
+    <div class="status" id="formStatus"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Watches in this config</h2>
+    <table id="watchTable">
+      <thead>
+        <tr><th>Label</th><th>Theatre</th><th>Date</th><th>Formats</th><th></th></tr>
+      </thead>
+      <tbody id="watchTableBody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg">No watches yet &mdash; add one above.</div>
+  </div>
+
+  <div class="card">
+    <h2>4. Import / Export</h2>
+    <div class="actions">
+      <span class="file-input-wrap">
+        <button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Load existing watches.json</button>
+        <input type="file" id="importFile" accept="application/json" onchange="importFile(event)">
+      </span>
+      <button type="button" onclick="exportWatches()">Download watches.json</button>
+    </div>
+    <div class="hint">Downloaded file goes at the project root, replacing the existing <code>watches.json</code>.</div>
+    <div class="status" id="exportStatus"></div>
+  </div>
+</div>
+
+<script>
+let watches = [];
+let editingIndex = -1;
+
+function slugify(s) {
+  return s.trim();
+}
+
+function extractFromUrl() {
+  const url = document.getElementById('bmsUrl').value.trim();
+  const statusEl = document.getElementById('extractStatus');
+  const m = url.match(/bookmyshow\.com\/movies\/([a-z0-9-]+)\/([a-z0-9-]+)\/buytickets\/([A-Za-z0-9]+)\/(\d{8})/i);
+  if (!m) {
+    statusEl.textContent = 'Could not recognize that as a BookMyShow buytickets URL. You can still fill the form manually.';
+    statusEl.className = 'status err';
+    return;
+  }
+  const [, city, movieSlug, eventCode, dateCode] = m;
+  if (city.toLowerCase() !== 'pune') {
+    statusEl.textContent = `Heads up: URL city is "${city}", but this project is hardcoded to Pune. Extracted anyway.`;
+    statusEl.className = 'status err';
+  } else {
+    statusEl.textContent = 'Extracted movie, event code, and date from the URL.';
+    statusEl.className = 'status ok';
+  }
+  document.getElementById('f_movie_slug').value = movieSlug;
+  document.getElementById('f_event_code').value = eventCode;
+  const yyyy = dateCode.slice(0, 4), mm = dateCode.slice(4, 6), dd = dateCode.slice(6, 8);
+  document.getElementById('f_date').value = `${yyyy}-${mm}-${dd}`;
+  if (!document.getElementById('f_movie_name').value) {
+    document.getElementById('f_movie_name').value = movieSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+}
+
+function readForm() {
+  const formats = document.getElementById('f_formats').value.split(',').map(s => s.trim()).filter(Boolean);
+  const aliases = document.getElementById('f_theatre_aliases').value.split(',').map(s => s.trim()).filter(Boolean);
+  return {
+    id: '', // computed on add
+    label: document.getElementById('f_label').value.trim(),
+    movie_name: document.getElementById('f_movie_name').value.trim(),
+    movie_slug: slugify(document.getElementById('f_movie_slug').value),
+    event_code: document.getElementById('f_event_code').value.trim(),
+    date: document.getElementById('f_date').value,
+    language: document.getElementById('f_language').value.trim() || 'english',
+    theatre: document.getElementById('f_theatre').value.trim(),
+    theatre_aliases: aliases,
+    formats: formats,
+  };
+}
+
+function addOrUpdateWatch() {
+  const statusEl = document.getElementById('formStatus');
+  const w = readForm();
+  if (!w.movie_slug || !w.event_code || !w.date || !w.theatre) {
+    statusEl.textContent = 'Movie slug, event code, date, and theatre are required.';
+    statusEl.className = 'status err';
+    return;
+  }
+  if (!w.label) w.label = `${w.movie_name || w.movie_slug} @ ${w.theatre} (${w.date})`;
+  w.id = `${w.movie_slug}-${w.event_code}-${w.theatre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${w.date}`;
+
+  if (editingIndex >= 0) {
+    watches[editingIndex] = w;
+    editingIndex = -1;
+    document.getElementById('addBtn').textContent = 'Add watch';
+  } else {
+    watches.push(w);
+  }
+  renderTable();
+  resetForm();
+  statusEl.textContent = 'Saved to the in-page list below. Download the file when you\'re done.';
+  statusEl.className = 'status ok';
+}
+
+function resetForm() {
+  ['f_label','f_movie_name','f_movie_slug','f_event_code','f_theatre','f_theatre_aliases','f_formats'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f_date').value = '';
+  document.getElementById('f_language').value = 'english';
+  editingIndex = -1;
+  document.getElementById('addBtn').textContent = 'Add watch';
+}
+
+function editWatch(i) {
+  const w = watches[i];
+  document.getElementById('f_label').value = w.label || '';
+  document.getElementById('f_movie_name').value = w.movie_name || '';
+  document.getElementById('f_movie_slug').value = w.movie_slug || '';
+  document.getElementById('f_event_code').value = w.event_code || '';
+  document.getElementById('f_date').value = w.date || '';
+  document.getElementById('f_language').value = w.language || 'english';
+  document.getElementById('f_theatre').value = w.theatre || '';
+  document.getElementById('f_theatre_aliases').value = (w.theatre_aliases || []).join(', ');
+  document.getElementById('f_formats').value = (w.formats || []).join(', ');
+  editingIndex = i;
+  document.getElementById('addBtn').textContent = 'Update watch';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteWatch(i) {
+  watches.splice(i, 1);
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('watchTableBody');
+  const emptyMsg = document.getElementById('emptyMsg');
+  tbody.innerHTML = '';
+  if (watches.length === 0) {
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+  watches.forEach((w, i) => {
+    const tr = document.createElement('tr');
+    const fmts = (w.formats && w.formats.length) ? w.formats.map(f => `<span class="tag">${escapeHtml(f)}</span>`).join('') : '<span class="muted">any</span>';
+    tr.innerHTML = `
+      <td>${escapeHtml(w.label)}</td>
+      <td class="muted">${escapeHtml(w.theatre)}</td>
+      <td class="muted">${escapeHtml(w.date)}</td>
+      <td>${fmts}</td>
+      <td>
+        <button type="button" class="secondary" style="padding:5px 10px;font-size:12px;margin-right:6px;" onclick="editWatch(${i})">Edit</button>
+        <button type="button" class="danger" onclick="deleteWatch(${i})">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function exportWatches() {
+  const statusEl = document.getElementById('exportStatus');
+  if (watches.length === 0) {
+    statusEl.textContent = 'Nothing to export yet - add at least one watch.';
+    statusEl.className = 'status err';
+    return;
+  }
+  const exportable = watches.map(({label, movie_name, movie_slug, event_code, date, language, theatre, theatre_aliases, formats, id}) =>
+    ({id, label, movie_name, movie_slug, event_code, date, language, theatre, theatre_aliases, formats}));
+  const blob = new Blob([JSON.stringify(exportable, null, 2) + '\n'], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'watches.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  statusEl.textContent = 'Downloaded watches.json - move it into the project folder.';
+  statusEl.className = 'status ok';
+}
+
+function importFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!Array.isArray(parsed)) throw new Error('Expected a JSON array of watches.');
+      watches = parsed;
+      renderTable();
+      document.getElementById('exportStatus').textContent = `Loaded ${parsed.length} watch(es) from ${file.name}.`;
+      document.getElementById('exportStatus').className = 'status ok';
+    } catch (e) {
+      document.getElementById('exportStatus').textContent = 'Could not read that file as a watches.json array: ' + e.message;
+      document.getElementById('exportStatus').className = 'status err';
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+renderTable();
+</script>
+</body>
+</html>

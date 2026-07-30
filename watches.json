@@ -1,0 +1,22 @@
+[
+  {
+    "id": "odyssey-inox-wakad-3aug",
+    "label": "The Odyssey @ INOX Wakad (3 Aug, IMAX)",
+    "movie_name": "The Odyssey",
+    "movie_slug": "the-odyssey",
+    "event_code": "ET00480917",
+    "date": "2026-08-03",
+    "language": "english",
+    "theatre": "INOX Megaplex Phoenix Mall of the Millennium Wakad",
+    "theatre_aliases": [
+      "INOX Megaplex",
+      "Phoenix Mall of the Millennium",
+      "Mall of the Millennium",
+      "Wakad"
+    ],
+    "formats": [
+      "IMAX",
+      "IMAX 2D"
+    ]
+  }
+]
